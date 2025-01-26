@@ -7,11 +7,26 @@ local SoundService = game:GetService("SoundService")
 
 local espObjects = {}
 local entityEspObjects = {}
+local batteryEspObjects = {}
+local needleEspObjects = {}
+local heartEspObjects = {}
+local chocolateEspObjects = {}
+local cameraEspObjects = {}
+local keyEspObjects = {}
+local playerLight = nil
+local isLightEnabled = false
+local isGuiVisible = true
 
 
 local isDoorESPEnabled = false
 local isEntityESPEnabled = false
 local isNotificationEnabled = false
+local isBatteryESPEnabled = false
+local isNeedleESPEnabled = false
+local isHeartESPEnabled = false
+local isChocolateESPEnabled = false
+local isCameraESPEnabled = false
+local isKeyESPEnabled = false
 
 
 local screenGui = Instance.new("ScreenGui")
@@ -22,11 +37,23 @@ screenGui.Parent = game:GetService("CoreGui")
 
 local mainFrame = Instance.new("Frame")
 mainFrame.Name = "MainFrame"
-mainFrame.Size = UDim2.new(0, 200, 0, 220)  
-mainFrame.Position = UDim2.new(0.5, -100, 0, 10)
-mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+mainFrame.Size = UDim2.new(0, 220, 0, 800)
+mainFrame.Position = UDim2.new(0.5, -110, 0.5, -400)
+mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
 mainFrame.BackgroundTransparency = 0.1
 mainFrame.Parent = screenGui
+
+
+local mainShadow = Instance.new("ImageLabel")
+mainShadow.Name = "Shadow"
+mainShadow.AnchorPoint = Vector2.new(0.5, 0.5)
+mainShadow.Position = UDim2.new(0.5, 0, 0.5, 0)
+mainShadow.Size = UDim2.new(1, 30, 1, 30)
+mainShadow.BackgroundTransparency = 1
+mainShadow.Image = "rbxassetid://5554236805"
+mainShadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+mainShadow.ImageTransparency = 0.6
+mainShadow.Parent = mainFrame
 
 
 local mainCorner = Instance.new("UICorner")
@@ -36,9 +63,9 @@ mainCorner.Parent = mainFrame
 
 local titleBar = Instance.new("Frame")
 titleBar.Name = "TitleBar"
-titleBar.Size = UDim2.new(1, 0, 0, 30)
-titleBar.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-titleBar.BackgroundTransparency = 0.5
+titleBar.Size = UDim2.new(1, 0, 0, 35)
+titleBar.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+titleBar.BackgroundTransparency = 0.1
 titleBar.Parent = mainFrame
 
 
@@ -66,16 +93,16 @@ versionLabel.BackgroundTransparency = 1
 versionLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
 versionLabel.TextSize = 12
 versionLabel.Font = Enum.Font.Gotham
-versionLabel.Text = "v1.0"
+versionLabel.Text = "v2.4"
 versionLabel.TextXAlignment = Enum.TextXAlignment.Right
 versionLabel.Parent = titleBar
 
 
 local function createSeparator(posY)
     local separator = Instance.new("Frame")
-    separator.Size = UDim2.new(1, -20, 0, 1)
+    separator.Size = UDim2.new(1, -20, 0, 2)
     separator.Position = UDim2.new(0, 10, 0, posY)
-    separator.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    separator.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
     separator.BorderSizePixel = 0
     separator.Parent = mainFrame
     return separator
@@ -84,11 +111,11 @@ end
 
 local function createSectionTitle(text, posY)
     local sectionTitle = Instance.new("TextLabel")
-    sectionTitle.Size = UDim2.new(1, -20, 0, 20)
+    sectionTitle.Size = UDim2.new(1, -20, 0, 25)
     sectionTitle.Position = UDim2.new(0, 10, 0, posY)
     sectionTitle.BackgroundTransparency = 1
-    sectionTitle.TextColor3 = Color3.fromRGB(200, 200, 200)
-    sectionTitle.TextSize = 14
+    sectionTitle.TextColor3 = Color3.fromRGB(220, 220, 220)
+    sectionTitle.TextSize = 15
     sectionTitle.Font = Enum.Font.GothamBold
     sectionTitle.Text = text
     sectionTitle.TextXAlignment = Enum.TextXAlignment.Left
@@ -126,19 +153,29 @@ end
 
 local function createToggleButton(text, posY, color)
     local button = Instance.new("TextButton")
-    button.Size = UDim2.new(0, 80, 0, 30)
-    button.Position = UDim2.new(1, -90, 0, posY)
-    button.BackgroundColor3 = Color3.fromRGB(60, 120, 255)  
-    button.Text = "开启"  
+    button.Size = UDim2.new(0, 85, 0, 32)
+    button.Position = UDim2.new(1, -95, 0, posY)
+    button.BackgroundColor3 = Color3.fromRGB(60, 120, 255)
+    button.Text = "开启"
     button.TextColor3 = Color3.fromRGB(255, 255, 255)
     button.Font = Enum.Font.GothamBold
     button.TextSize = 14
     button.Parent = mainFrame
     
-    local buttonCorner = Instance.new("UICorner")
-    buttonCorner.CornerRadius = UDim.new(0, 6)
-    buttonCorner.Parent = button
+    local buttonShadow = Instance.new("ImageLabel")
+    buttonShadow.Name = "Shadow"
+    buttonShadow.AnchorPoint = Vector2.new(0.5, 0.5)
+    buttonShadow.Position = UDim2.new(0.5, 0, 0.5, 0)
+    buttonShadow.Size = UDim2.new(1, 6, 1, 6)
+    buttonShadow.BackgroundTransparency = 1
+    buttonShadow.Image = "rbxassetid://5554236805"
+    buttonShadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+    buttonShadow.ImageTransparency = 0.7
+    buttonShadow.Parent = button
     
+    local buttonCorner = Instance.new("UICorner")
+    buttonCorner.CornerRadius = UDim.new(0, 8)
+    buttonCorner.Parent = button
     
     addButtonEffect(button)
     
@@ -148,10 +185,10 @@ end
 
 local function createStatusLabel(posY)
     local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(1, -20, 0, 20)
+    label.Size = UDim2.new(1, -20, 0, 25)
     label.Position = UDim2.new(0, 10, 0, posY)
     label.BackgroundTransparency = 1
-    label.TextColor3 = Color3.fromRGB(200, 200, 200)
+    label.TextColor3 = Color3.fromRGB(180, 180, 180)
     label.TextSize = 14
     label.Font = Enum.Font.Gotham
     label.TextXAlignment = Enum.TextXAlignment.Left
@@ -180,6 +217,174 @@ createSeparator(170)
 
 local notificationTitle = createSectionTitle("实体提示", 180)
 local notificationToggle = createToggleButton("开启", 180, Color3.fromRGB(255, 60, 60))  
+
+
+createSeparator(210)
+
+
+local batteryTitle = createSectionTitle("电池透视", 220)
+local batteryToggle = createToggleButton("开启", 220, Color3.fromRGB(255, 60, 60))
+local batteryStatus = createStatusLabel(255)
+batteryStatus.Text = "已找到电池: 0"
+
+
+createSeparator(280)
+
+
+local needleTitle = createSectionTitle("破坏锁透视", 290)
+local needleToggle = createToggleButton("开启", 290, Color3.fromRGB(255, 60, 60))
+local needleStatus = createStatusLabel(325)
+needleStatus.Text = "已找到破坏锁: 0"
+
+
+createSeparator(350)
+
+
+local heartTitle = createSectionTitle("心脏透视", 360)
+local heartToggle = createToggleButton("开启", 360, Color3.fromRGB(255, 60, 60))
+local heartStatus = createStatusLabel(395)
+heartStatus.Text = "已找到心脏: 0"
+
+
+createSeparator(420)
+
+
+local chocolateTitle = createSectionTitle("巧克力透视", 430)
+local chocolateToggle = createToggleButton("开启", 430, Color3.fromRGB(255, 60, 60))
+local chocolateStatus = createStatusLabel(465)
+chocolateStatus.Text = "已找到巧克力: 0"
+
+
+createSeparator(490)
+
+
+local cameraTitle = createSectionTitle("相机透视", 500)
+local cameraToggle = createToggleButton("开启", 500, Color3.fromRGB(255, 60, 60))
+local cameraStatus = createStatusLabel(535)
+cameraStatus.Text = "已找到相机: 0"
+
+
+createSeparator(560)
+
+
+local keyTitle = createSectionTitle("钥匙透视", 570)
+local keyToggle = createToggleButton("开启", 570, Color3.fromRGB(255, 60, 60))
+local keyStatus = createStatusLabel(605)
+keyStatus.Text = "已找到钥匙: 0"
+
+
+createSeparator(630)
+
+
+
+local speedTitle = createSectionTitle("速度控制", 640)
+local speedStatus = createStatusLabel(675)
+speedStatus.Text = "当前速度: 16"
+
+local speedSlider = Instance.new("Frame")
+speedSlider.Name = "SpeedSlider"
+speedSlider.Size = UDim2.new(0.8, 0, 0, 24)
+speedSlider.Position = UDim2.new(0.1, 0, 0, 700)
+speedSlider.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
+speedSlider.Parent = mainFrame
+
+local sliderCorner = Instance.new("UICorner")
+sliderCorner.CornerRadius = UDim.new(0, 12)
+sliderCorner.Parent = speedSlider
+
+local sliderButton = Instance.new("TextButton")
+sliderButton.Size = UDim2.new(0.12, 0, 1.2, 0)
+sliderButton.Position = UDim2.new(0.5, 0, -0.1, 0)
+sliderButton.BackgroundColor3 = Color3.fromRGB(70, 130, 255)
+sliderButton.Text = ""
+sliderButton.Parent = speedSlider
+
+local sliderShadow = Instance.new("ImageLabel")
+sliderShadow.Name = "Shadow"
+sliderShadow.AnchorPoint = Vector2.new(0.5, 0.5)
+sliderShadow.Position = UDim2.new(0.5, 0, 0.5, 0)
+sliderShadow.Size = UDim2.new(1, 6, 1, 6)
+sliderShadow.BackgroundTransparency = 1
+sliderShadow.Image = "rbxassetid://5554236805"
+sliderShadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+sliderShadow.ImageTransparency = 0.7
+sliderShadow.Parent = sliderButton
+
+local buttonCorner = Instance.new("UICorner")
+buttonCorner.CornerRadius = UDim.new(0.5, 0)
+buttonCorner.Parent = sliderButton
+
+local speedValue = 16
+local isSpeedEnabled = false
+local speedHotkey = Enum.KeyCode.Z
+
+local function updateSpeed()
+    local player = game.Players.LocalPlayer
+    if not player then return end
+    
+    local character = player.Character or player.CharacterAdded:Wait()
+    local humanoid = character:WaitForChild("Humanoid")
+    
+    if isSpeedEnabled then
+        humanoid.WalkSpeed = speedValue
+    else
+        humanoid.WalkSpeed = 16
+    end
+end
+
+local function setupSpeedControl()
+    local player = game.Players.LocalPlayer
+    
+    player.CharacterAdded:Connect(function(character)
+        local humanoid = character:WaitForChild("Humanoid")
+        if isSpeedEnabled then
+            humanoid.WalkSpeed = speedValue
+        end
+    end)
+end
+
+local isDragging = false
+
+sliderButton.MouseButton1Down:Connect(function()
+    isDragging = true
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        isDragging = false
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement and isDragging then
+        local mousePos = UserInputService:GetMouseLocation()
+        local sliderPos = speedSlider.AbsolutePosition
+        local sliderSize = speedSlider.AbsoluteSize
+        
+        local relativeX = math.clamp((mousePos.X - sliderPos.X) / sliderSize.X, 0, 1)
+        sliderButton.Position = UDim2.new(relativeX, 0, 0, 0)
+        
+        speedValue = math.floor(relativeX * 100) + 16
+        speedStatus.Text = "当前速度: " .. speedValue
+        
+        if isSpeedEnabled then
+            updateSpeed()
+        end
+    end
+end)
+
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if not gameProcessed and input.KeyCode == speedHotkey then
+        isSpeedEnabled = not isSpeedEnabled
+        updateSpeed()
+        speedStatus.Text = "当前速度: " .. (isSpeedEnabled and speedValue or 16)
+    end
+end)
+
+createSeparator(730)
+
+local lightTitle = createSectionTitle("照明", 740)
+local lightToggle = createToggleButton("开启", 740, Color3.fromRGB(255, 60, 60))
 
 
 local function createAlertSound()
@@ -476,11 +681,9 @@ local function findAllEntities()
         return
     end
     
-    
     for part, _ in pairs(entityEspObjects) do
         removeEntityESP(part)
     end
-    
     
     local entityCount = 0
     for _, part in pairs(entitiesFolder:GetChildren()) do
@@ -490,7 +693,7 @@ local function findAllEntities()
         end
     end
     
-    print("总共找到实体:", entityCount)
+    entityStatus.Text = "已找到实体: " .. entityCount
 end
 
 
@@ -576,6 +779,138 @@ notificationToggle.MouseButton1Click:Connect(function()
 end)
 
 
+batteryToggle.MouseButton1Click:Connect(function()
+    isBatteryESPEnabled = not isBatteryESPEnabled
+    batteryToggle.Text = isBatteryESPEnabled and "关闭" or "开启"
+    batteryToggle.BackgroundColor3 = isBatteryESPEnabled and 
+        Color3.fromRGB(255, 60, 60) or
+        Color3.fromRGB(60, 120, 255)
+    
+    for _, espFrame in pairs(batteryEspObjects) do
+        if espFrame:FindFirstChild("ESPBox") then
+            espFrame.ESPBox.Visible = isBatteryESPEnabled
+        end
+        if espFrame:FindFirstChild("ESPTag") then
+            espFrame.ESPTag.Enabled = isBatteryESPEnabled
+        end
+    end
+    
+    if isBatteryESPEnabled then
+        findAllBatteries()
+    end
+end)
+
+
+needleToggle.MouseButton1Click:Connect(function()
+    isNeedleESPEnabled = not isNeedleESPEnabled
+    needleToggle.Text = isNeedleESPEnabled and "关闭" or "开启"
+    needleToggle.BackgroundColor3 = isNeedleESPEnabled and 
+        Color3.fromRGB(255, 60, 60) or
+        Color3.fromRGB(60, 120, 255)
+    
+    for _, espFrame in pairs(needleEspObjects) do
+        if espFrame:FindFirstChild("ESPBox") then
+            espFrame.ESPBox.Visible = isNeedleESPEnabled
+        end
+        if espFrame:FindFirstChild("ESPTag") then
+            espFrame.ESPTag.Enabled = isNeedleESPEnabled
+        end
+    end
+    
+    if isNeedleESPEnabled then
+        findAllNeedles()
+    end
+end)
+
+
+heartToggle.MouseButton1Click:Connect(function()
+    isHeartESPEnabled = not isHeartESPEnabled
+    heartToggle.Text = isHeartESPEnabled and "关闭" or "开启"
+    heartToggle.BackgroundColor3 = isHeartESPEnabled and 
+        Color3.fromRGB(255, 60, 60) or
+        Color3.fromRGB(60, 120, 255)
+    
+    for _, espFrame in pairs(heartEspObjects) do
+        if espFrame:FindFirstChild("ESPBox") then
+            espFrame.ESPBox.Visible = isHeartESPEnabled
+        end
+        if espFrame:FindFirstChild("ESPTag") then
+            espFrame.ESPTag.Enabled = isHeartESPEnabled
+        end
+    end
+    
+    if isHeartESPEnabled then
+        findAllHearts()
+    end
+end)
+
+
+chocolateToggle.MouseButton1Click:Connect(function()
+    isChocolateESPEnabled = not isChocolateESPEnabled
+    chocolateToggle.Text = isChocolateESPEnabled and "关闭" or "开启"
+    chocolateToggle.BackgroundColor3 = isChocolateESPEnabled and 
+        Color3.fromRGB(255, 60, 60) or
+        Color3.fromRGB(60, 120, 255)
+    
+    for _, espFrame in pairs(chocolateEspObjects) do
+        if espFrame:FindFirstChild("ESPBox") then
+            espFrame.ESPBox.Visible = isChocolateESPEnabled
+        end
+        if espFrame:FindFirstChild("ESPTag") then
+            espFrame.ESPTag.Enabled = isChocolateESPEnabled
+        end
+    end
+    
+    if isChocolateESPEnabled then
+        findAllChocolates()
+    end
+end)
+
+
+cameraToggle.MouseButton1Click:Connect(function()
+    isCameraESPEnabled = not isCameraESPEnabled
+    cameraToggle.Text = isCameraESPEnabled and "关闭" or "开启"
+    cameraToggle.BackgroundColor3 = isCameraESPEnabled and 
+        Color3.fromRGB(255, 60, 60) or
+        Color3.fromRGB(60, 120, 255)
+    
+    for _, espFrame in pairs(cameraEspObjects) do
+        if espFrame:FindFirstChild("ESPBox") then
+            espFrame.ESPBox.Visible = isCameraESPEnabled
+        end
+        if espFrame:FindFirstChild("ESPTag") then
+            espFrame.ESPTag.Enabled = isCameraESPEnabled
+        end
+    end
+    
+    if isCameraESPEnabled then
+        findAllCameras()
+    end
+end)
+
+
+keyToggle.MouseButton1Click:Connect(function()
+    isKeyESPEnabled = not isKeyESPEnabled
+    keyToggle.Text = isKeyESPEnabled and "关闭" or "开启"
+    keyToggle.BackgroundColor3 = isKeyESPEnabled and 
+        Color3.fromRGB(255, 60, 60) or
+        Color3.fromRGB(60, 120, 255)
+    
+    for _, espFrame in pairs(keyEspObjects) do
+        if espFrame:FindFirstChild("ESPBox") then
+            espFrame.ESPBox.Visible = isKeyESPEnabled
+        end
+        if espFrame:FindFirstChild("ESPTag") then
+            espFrame.ESPTag.Enabled = isKeyESPEnabled
+        end
+    end
+    
+    if isKeyESPEnabled then
+        findAllKeys()
+    end
+end)
+
+
 local dragging = false
 local dragStart = nil
 local startPos = nil
@@ -627,6 +962,791 @@ RunService.RenderStepped:Connect(function()
 end)
 
 
+local function createBatteryESP(part)
+    if batteryEspObjects[part] then
+        return
+    end
+    
+    local espFrame = Instance.new("Folder")
+    espFrame.Name = "ESP_" .. part.Name
+    
+    local box = Instance.new("BoxHandleAdornment")
+    box.Name = "ESPBox"
+    box.Size = Vector3.new(2, 2, 2)
+    box.Adornee = part
+    box.AlwaysOnTop = true
+    box.ZIndex = 5
+    box.Color3 = Color3.fromRGB(0, 0, 255)
+    box.Transparency = 0.5
+    box.Visible = isBatteryESPEnabled
+    box.Parent = espFrame
+    
+    local billboardGui = Instance.new("BillboardGui")
+    billboardGui.Name = "ESPTag"
+    billboardGui.Size = UDim2.new(0, 200, 0, 25)
+    billboardGui.AlwaysOnTop = true
+    billboardGui.StudsOffset = Vector3.new(0, 2, 0)
+    billboardGui.Adornee = part
+    billboardGui.Enabled = isBatteryESPEnabled
+    
+    local nameLabel = Instance.new("TextLabel")
+    nameLabel.Size = UDim2.new(1, 0, 1, 0)
+    nameLabel.Position = UDim2.new(0, 0, 0, 0)
+    nameLabel.BackgroundTransparency = 1
+    nameLabel.TextColor3 = Color3.fromRGB(0, 0, 255)
+    nameLabel.TextStrokeTransparency = 0
+    nameLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+    nameLabel.Text = "电池"
+    nameLabel.TextScaled = true
+    nameLabel.Font = Enum.Font.GothamBold
+    nameLabel.Parent = billboardGui
+    
+    billboardGui.Parent = espFrame
+    espFrame.Parent = game.CoreGui
+    
+    batteryEspObjects[part] = espFrame
+end
+
+
+local function removeBatteryESP(part)
+    if batteryEspObjects[part] then
+        batteryEspObjects[part]:Destroy()
+        batteryEspObjects[part] = nil
+    end
+end
+
+
+local function findAllBatteries()
+    local roomsFolder = workspace:FindFirstChild("Rooms")
+    if not roomsFolder then
+        return
+    end
+    
+    for part, _ in pairs(batteryEspObjects) do
+        removeBatteryESP(part)
+    end
+    
+    local batteryCount = 0
+    for _, room in pairs(roomsFolder:GetChildren()) do
+        local itemSpawns = room:FindFirstChild("ItemSpawns")
+        if itemSpawns then
+            for _, spawnPoint in pairs(itemSpawns:GetChildren()) do
+                if spawnPoint.Name == "ItemSpawnPoint" then
+                    for _, item in pairs(spawnPoint:GetChildren()) do
+                        if item.Name == "Battery" then
+                            createBatteryESP(item)
+                            batteryCount = batteryCount + 1
+                        end
+                    end
+                end
+            end
+        end
+    end
+    
+    batteryStatus.Text = "已找到电池: " .. batteryCount
+end
+
+
+local function setupBatteryTracking()
+    local roomsFolder = workspace:FindFirstChild("Rooms")
+    if not roomsFolder then
+        return
+    end
+    
+    local function checkRoom(room)
+        local itemSpawns = room:FindFirstChild("ItemSpawns")
+        if itemSpawns then
+            itemSpawns.DescendantAdded:Connect(function(item)
+                if item.Name == "Battery" then
+                    task.wait()
+                    createBatteryESP(item)
+                    local count = 0
+                    for _ in pairs(batteryEspObjects) do count = count + 1 end
+                    batteryStatus.Text = "已找到电池: " .. count
+                end
+            end)
+            
+            itemSpawns.DescendantRemoving:Connect(function(item)
+                if item.Name == "Battery" then
+                    removeBatteryESP(item)
+                    local count = 0
+                    for _ in pairs(batteryEspObjects) do count = count + 1 end
+                    batteryStatus.Text = "已找到电池: " .. count
+                end
+            end)
+        end
+    end
+    
+    for _, room in pairs(roomsFolder:GetChildren()) do
+        checkRoom(room)
+    end
+    
+    roomsFolder.ChildAdded:Connect(function(room)
+        task.wait()
+        checkRoom(room)
+    end)
+end
+
+
+local function createNeedleESP(part)
+    if needleEspObjects[part] then
+        return
+    end
+    
+    local espFrame = Instance.new("Folder")
+    espFrame.Name = "ESP_" .. part.Name
+    
+    local box = Instance.new("BoxHandleAdornment")
+    box.Name = "ESPBox"
+    box.Size = Vector3.new(2, 2, 2)
+    box.Adornee = part
+    box.AlwaysOnTop = true
+    box.ZIndex = 5
+    box.Color3 = Color3.fromRGB(255, 165, 0)  
+    box.Transparency = 0.5
+    box.Visible = isNeedleESPEnabled
+    box.Parent = espFrame
+    
+    local billboardGui = Instance.new("BillboardGui")
+    billboardGui.Name = "ESPTag"
+    billboardGui.Size = UDim2.new(0, 200, 0, 25)
+    billboardGui.AlwaysOnTop = true
+    billboardGui.StudsOffset = Vector3.new(0, 2, 0)
+    billboardGui.Adornee = part
+    billboardGui.Enabled = isNeedleESPEnabled
+    
+    local nameLabel = Instance.new("TextLabel")
+    nameLabel.Size = UDim2.new(1, 0, 1, 0)
+    nameLabel.Position = UDim2.new(0, 0, 0, 0)
+    nameLabel.BackgroundTransparency = 1
+    nameLabel.TextColor3 = Color3.fromRGB(255, 165, 0)  
+    nameLabel.TextStrokeTransparency = 0
+    nameLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+    nameLabel.Text = "破坏锁"
+    nameLabel.TextScaled = true
+    nameLabel.Font = Enum.Font.GothamBold
+    nameLabel.Parent = billboardGui
+    
+    billboardGui.Parent = espFrame
+    espFrame.Parent = game.CoreGui
+    
+    needleEspObjects[part] = espFrame
+end
+
+
+local function removeNeedleESP(part)
+    if needleEspObjects[part] then
+        needleEspObjects[part]:Destroy()
+        needleEspObjects[part] = nil
+    end
+end
+
+
+local function findAllNeedles()
+    local roomsFolder = workspace:FindFirstChild("Rooms")
+    if not roomsFolder then
+        return
+    end
+    
+    for part, _ in pairs(needleEspObjects) do
+        removeNeedleESP(part)
+    end
+    
+    local needleCount = 0
+    for _, room in pairs(roomsFolder:GetChildren()) do
+        local itemSpawns = room:FindFirstChild("ItemSpawns")
+        if itemSpawns then
+            for _, spawnPoint in pairs(itemSpawns:GetChildren()) do
+                if spawnPoint.Name == "ItemSpawnPoint" then
+                    for _, item in pairs(spawnPoint:GetChildren()) do
+                        if item.Name == "Metal Needle" then
+                            createNeedleESP(item)
+                            needleCount = needleCount + 1
+                        end
+                    end
+                end
+            end
+        end
+    end
+    
+    needleStatus.Text = "已找到破坏锁: " .. needleCount
+end
+
+
+local function setupNeedleTracking()
+    local roomsFolder = workspace:FindFirstChild("Rooms")
+    if not roomsFolder then
+        return
+    end
+    
+    local function checkRoom(room)
+        local itemSpawns = room:FindFirstChild("ItemSpawns")
+        if itemSpawns then
+            itemSpawns.DescendantAdded:Connect(function(item)
+                if item.Name == "Metal Needle" then
+                    task.wait()
+                    createNeedleESP(item)
+                    local count = 0
+                    for _ in pairs(needleEspObjects) do count = count + 1 end
+                    needleStatus.Text = "已找到破坏锁: " .. count
+                end
+            end)
+            
+            itemSpawns.DescendantRemoving:Connect(function(item)
+                if item.Name == "Metal Needle" then
+                    removeNeedleESP(item)
+                    local count = 0
+                    for _ in pairs(needleEspObjects) do count = count + 1 end
+                    needleStatus.Text = "已找到破坏锁: " .. count
+                end
+            end)
+        end
+    end
+    
+    for _, room in pairs(roomsFolder:GetChildren()) do
+        checkRoom(room)
+    end
+    
+    roomsFolder.ChildAdded:Connect(function(room)
+        task.wait()
+        checkRoom(room)
+    end)
+end
+
+
+local function createHeartESP(part)
+    if heartEspObjects[part] then
+        return
+    end
+    
+    local espFrame = Instance.new("Folder")
+    espFrame.Name = "ESP_" .. part.Name
+    
+    local box = Instance.new("BoxHandleAdornment")
+    box.Name = "ESPBox"
+    box.Size = Vector3.new(2, 2, 2)
+    box.Adornee = part
+    box.AlwaysOnTop = true
+    box.ZIndex = 5
+    box.Color3 = Color3.fromRGB(255, 0, 0)  
+    box.Transparency = 0.5
+    box.Visible = isHeartESPEnabled
+    box.Parent = espFrame
+    
+    local billboardGui = Instance.new("BillboardGui")
+    billboardGui.Name = "ESPTag"
+    billboardGui.Size = UDim2.new(0, 200, 0, 25)
+    billboardGui.AlwaysOnTop = true
+    billboardGui.StudsOffset = Vector3.new(0, 2, 0)
+    billboardGui.Adornee = part
+    billboardGui.Enabled = isHeartESPEnabled
+    
+    local nameLabel = Instance.new("TextLabel")
+    nameLabel.Size = UDim2.new(1, 0, 1, 0)
+    nameLabel.Position = UDim2.new(0, 0, 0, 0)
+    nameLabel.BackgroundTransparency = 1
+    nameLabel.TextColor3 = Color3.fromRGB(255, 0, 0)  
+    nameLabel.TextStrokeTransparency = 0
+    nameLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+    nameLabel.Text = "心脏"
+    nameLabel.TextScaled = true
+    nameLabel.Font = Enum.Font.GothamBold
+    nameLabel.Parent = billboardGui
+    
+    billboardGui.Parent = espFrame
+    espFrame.Parent = game.CoreGui
+    
+    heartEspObjects[part] = espFrame
+end
+
+
+local function removeHeartESP(part)
+    if heartEspObjects[part] then
+        heartEspObjects[part]:Destroy()
+        heartEspObjects[part] = nil
+    end
+end
+
+
+local function findAllHearts()
+    local roomsFolder = workspace:FindFirstChild("Rooms")
+    if not roomsFolder then
+        return
+    end
+    
+    for part, _ in pairs(heartEspObjects) do
+        removeHeartESP(part)
+    end
+    
+    local heartCount = 0
+    for _, room in pairs(roomsFolder:GetChildren()) do
+        local itemSpawns = room:FindFirstChild("ItemSpawns")
+        if itemSpawns then
+            for _, spawnPoint in pairs(itemSpawns:GetChildren()) do
+                if spawnPoint.Name == "ItemSpawnPoint" then
+                    for _, item in pairs(spawnPoint:GetChildren()) do
+                        if item.Name == "Heart" then
+                            createHeartESP(item)
+                            heartCount = heartCount + 1
+                        end
+                    end
+                end
+            end
+        end
+    end
+    
+    heartStatus.Text = "已找到心脏: " .. heartCount
+end
+
+
+local function setupHeartTracking()
+    local roomsFolder = workspace:FindFirstChild("Rooms")
+    if not roomsFolder then
+        return
+    end
+    
+    local function checkRoom(room)
+        local itemSpawns = room:FindFirstChild("ItemSpawns")
+        if itemSpawns then
+            itemSpawns.DescendantAdded:Connect(function(item)
+                if item.Name == "Heart" then
+                    task.wait()
+                    createHeartESP(item)
+                    local count = 0
+                    for _ in pairs(heartEspObjects) do count = count + 1 end
+                    heartStatus.Text = "已找到心脏: " .. count
+                end
+            end)
+            
+            itemSpawns.DescendantRemoving:Connect(function(item)
+                if item.Name == "Heart" then
+                    removeHeartESP(item)
+                    local count = 0
+                    for _ in pairs(heartEspObjects) do count = count + 1 end
+                    heartStatus.Text = "已找到心脏: " .. count
+                end
+            end)
+        end
+    end
+    
+    for _, room in pairs(roomsFolder:GetChildren()) do
+        checkRoom(room)
+    end
+    
+    roomsFolder.ChildAdded:Connect(function(room)
+        task.wait()
+        checkRoom(room)
+    end)
+end
+
+
+local function createChocolateESP(part)
+    if chocolateEspObjects[part] then
+        return
+    end
+    
+    local espFrame = Instance.new("Folder")
+    espFrame.Name = "ESP_" .. part.Name
+    
+    local box = Instance.new("BoxHandleAdornment")
+    box.Name = "ESPBox"
+    box.Size = Vector3.new(2, 2, 2)
+    box.Adornee = part
+    box.AlwaysOnTop = true
+    box.ZIndex = 5
+    box.Color3 = Color3.fromRGB(139, 69, 19)  
+    box.Transparency = 0.5
+    box.Visible = isChocolateESPEnabled
+    box.Parent = espFrame
+    
+    local billboardGui = Instance.new("BillboardGui")
+    billboardGui.Name = "ESPTag"
+    billboardGui.Size = UDim2.new(0, 200, 0, 25)
+    billboardGui.AlwaysOnTop = true
+    billboardGui.StudsOffset = Vector3.new(0, 2, 0)
+    billboardGui.Adornee = part
+    billboardGui.Enabled = isChocolateESPEnabled
+    
+    local nameLabel = Instance.new("TextLabel")
+    nameLabel.Size = UDim2.new(1, 0, 1, 0)
+    nameLabel.Position = UDim2.new(0, 0, 0, 0)
+    nameLabel.BackgroundTransparency = 1
+    nameLabel.TextColor3 = Color3.fromRGB(139, 69, 19)  
+    nameLabel.TextStrokeTransparency = 0
+    nameLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+    nameLabel.Text = "巧克力"
+    nameLabel.TextScaled = true
+    nameLabel.Font = Enum.Font.GothamBold
+    nameLabel.Parent = billboardGui
+    
+    billboardGui.Parent = espFrame
+    espFrame.Parent = game.CoreGui
+    
+    chocolateEspObjects[part] = espFrame
+end
+
+
+local function removeChocolateESP(part)
+    if chocolateEspObjects[part] then
+        chocolateEspObjects[part]:Destroy()
+        chocolateEspObjects[part] = nil
+    end
+end
+
+
+local function findAllChocolates()
+    local roomsFolder = workspace:FindFirstChild("Rooms")
+    if not roomsFolder then
+        return
+    end
+    
+    for part, _ in pairs(chocolateEspObjects) do
+        removeChocolateESP(part)
+    end
+    
+    local chocolateCount = 0
+    for _, room in pairs(roomsFolder:GetChildren()) do
+        local itemSpawns = room:FindFirstChild("ItemSpawns")
+        if itemSpawns then
+            for _, spawnPoint in pairs(itemSpawns:GetChildren()) do
+                if spawnPoint.Name == "ItemSpawnPoint" then
+                    for _, item in pairs(spawnPoint:GetChildren()) do
+                        if item.Name == "Chocolate Bar" then
+                            createChocolateESP(item)
+                            chocolateCount = chocolateCount + 1
+                        end
+                    end
+                end
+            end
+        end
+    end
+    
+    chocolateStatus.Text = "已找到巧克力: " .. chocolateCount
+end
+
+
+local function setupChocolateTracking()
+    local roomsFolder = workspace:FindFirstChild("Rooms")
+    if not roomsFolder then
+        return
+    end
+    
+    local function checkRoom(room)
+        local itemSpawns = room:FindFirstChild("ItemSpawns")
+        if itemSpawns then
+            itemSpawns.DescendantAdded:Connect(function(item)
+                if item.Name == "Chocolate Bar" then
+                    task.wait()
+                    createChocolateESP(item)
+                    local count = 0
+                    for _ in pairs(chocolateEspObjects) do count = count + 1 end
+                    chocolateStatus.Text = "已找到巧克力: " .. count
+                end
+            end)
+            
+            itemSpawns.DescendantRemoving:Connect(function(item)
+                if item.Name == "Chocolate Bar" then
+                    removeChocolateESP(item)
+                    local count = 0
+                    for _ in pairs(chocolateEspObjects) do count = count + 1 end
+                    chocolateStatus.Text = "已找到巧克力: " .. count
+                end
+            end)
+        end
+    end
+    
+    for _, room in pairs(roomsFolder:GetChildren()) do
+        checkRoom(room)
+    end
+    
+    roomsFolder.ChildAdded:Connect(function(room)
+        task.wait()
+        checkRoom(room)
+    end)
+end
+
+
+local function createCameraESP(part)
+    if cameraEspObjects[part] then
+        return
+    end
+    
+    local espFrame = Instance.new("Folder")
+    espFrame.Name = "ESP_" .. part.Name
+    
+    local box = Instance.new("BoxHandleAdornment")
+    box.Name = "ESPBox"
+    box.Size = Vector3.new(2, 2, 2)
+    box.Adornee = part
+    box.AlwaysOnTop = true
+    box.ZIndex = 5
+    box.Color3 = Color3.fromRGB(147, 112, 219)  
+    box.Transparency = 0.5
+    box.Visible = isCameraESPEnabled
+    box.Parent = espFrame
+    
+    local billboardGui = Instance.new("BillboardGui")
+    billboardGui.Name = "ESPTag"
+    billboardGui.Size = UDim2.new(0, 200, 0, 25)
+    billboardGui.AlwaysOnTop = true
+    billboardGui.StudsOffset = Vector3.new(0, 2, 0)
+    billboardGui.Adornee = part
+    billboardGui.Enabled = isCameraESPEnabled
+    
+    local nameLabel = Instance.new("TextLabel")
+    nameLabel.Size = UDim2.new(1, 0, 1, 0)
+    nameLabel.Position = UDim2.new(0, 0, 0, 0)
+    nameLabel.BackgroundTransparency = 1
+    nameLabel.TextColor3 = Color3.fromRGB(147, 112, 219)  
+    nameLabel.TextStrokeTransparency = 0
+    nameLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+    nameLabel.Text = "相机"
+    nameLabel.TextScaled = true
+    nameLabel.Font = Enum.Font.GothamBold
+    nameLabel.Parent = billboardGui
+    
+    billboardGui.Parent = espFrame
+    espFrame.Parent = game.CoreGui
+    
+    cameraEspObjects[part] = espFrame
+end
+
+
+local function removeCameraESP(part)
+    if cameraEspObjects[part] then
+        cameraEspObjects[part]:Destroy()
+        cameraEspObjects[part] = nil
+    end
+end
+
+
+local function findAllCameras()
+    local roomsFolder = workspace:FindFirstChild("Rooms")
+    if not roomsFolder then
+        return
+    end
+    
+    for part, _ in pairs(cameraEspObjects) do
+        removeCameraESP(part)
+    end
+    
+    local cameraCount = 0
+    for _, room in pairs(roomsFolder:GetChildren()) do
+        local itemSpawns = room:FindFirstChild("ItemSpawns")
+        if itemSpawns then
+            for _, spawnPoint in pairs(itemSpawns:GetChildren()) do
+                if spawnPoint.Name == "ItemSpawnPoint" then
+                    for _, item in pairs(spawnPoint:GetChildren()) do
+                        if item.Name == "Camera" then
+                            createCameraESP(item)
+                            cameraCount = cameraCount + 1
+                        end
+                    end
+                end
+            end
+        end
+    end
+    
+    cameraStatus.Text = "已找到相机: " .. cameraCount
+end
+
+
+local function setupCameraTracking()
+    local roomsFolder = workspace:FindFirstChild("Rooms")
+    if not roomsFolder then
+        return
+    end
+    
+    local function checkRoom(room)
+        local itemSpawns = room:FindFirstChild("ItemSpawns")
+        if itemSpawns then
+            itemSpawns.DescendantAdded:Connect(function(item)
+                if item.Name == "Camera" then
+                    task.wait()
+                    createCameraESP(item)
+                    local count = 0
+                    for _ in pairs(cameraEspObjects) do count = count + 1 end
+                    cameraStatus.Text = "已找到相机: " .. count
+                end
+            end)
+            
+            itemSpawns.DescendantRemoving:Connect(function(item)
+                if item.Name == "Camera" then
+                    removeCameraESP(item)
+                    local count = 0
+                    for _ in pairs(cameraEspObjects) do count = count + 1 end
+                    cameraStatus.Text = "已找到相机: " .. count
+                end
+            end)
+        end
+    end
+    
+    for _, room in pairs(roomsFolder:GetChildren()) do
+        checkRoom(room)
+    end
+    
+    roomsFolder.ChildAdded:Connect(function(room)
+        task.wait()
+        checkRoom(room)
+    end)
+end
+
+
+local function createKeyESP(part)
+    if keyEspObjects[part] then
+        return
+    end
+    
+    local espFrame = Instance.new("Folder")
+    espFrame.Name = "ESP_" .. part.Name
+    
+    local box = Instance.new("BoxHandleAdornment")
+    box.Name = "ESPBox"
+    box.Size = Vector3.new(2, 2, 2)
+    box.Adornee = part
+    box.AlwaysOnTop = true
+    box.ZIndex = 5
+    box.Color3 = Color3.fromRGB(255, 215, 0)  
+    box.Transparency = 0.5
+    box.Visible = isKeyESPEnabled
+    box.Parent = espFrame
+    
+    local billboardGui = Instance.new("BillboardGui")
+    billboardGui.Name = "ESPTag"
+    billboardGui.Size = UDim2.new(0, 200, 0, 25)
+    billboardGui.AlwaysOnTop = true
+    billboardGui.StudsOffset = Vector3.new(0, 2, 0)
+    billboardGui.Adornee = part
+    billboardGui.Enabled = isKeyESPEnabled
+    
+    local nameLabel = Instance.new("TextLabel")
+    nameLabel.Size = UDim2.new(1, 0, 1, 0)
+    nameLabel.Position = UDim2.new(0, 0, 0, 0)
+    nameLabel.BackgroundTransparency = 1
+    nameLabel.TextColor3 = Color3.fromRGB(255, 215, 0)  
+    nameLabel.TextStrokeTransparency = 0
+    nameLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+    nameLabel.Text = "钥匙"
+    nameLabel.TextScaled = true
+    nameLabel.Font = Enum.Font.GothamBold
+    nameLabel.Parent = billboardGui
+    
+    billboardGui.Parent = espFrame
+    espFrame.Parent = game.CoreGui
+    
+    keyEspObjects[part] = espFrame
+end
+
+
+local function removeKeyESP(part)
+    if keyEspObjects[part] then
+        keyEspObjects[part]:Destroy()
+        keyEspObjects[part] = nil
+    end
+end
+
+
+local function findAllKeys()
+    local roomsFolder = workspace:FindFirstChild("Rooms")
+    if not roomsFolder then
+        return
+    end
+    
+    for part, _ in pairs(keyEspObjects) do
+        removeKeyESP(part)
+    end
+    
+    local keyCount = 0
+    
+    for _, item in pairs(roomsFolder:GetDescendants()) do
+        if item.Name == "Door Key" then
+            createKeyESP(item)
+            keyCount = keyCount + 1
+        end
+    end
+    
+    keyStatus.Text = "已找到钥匙: " .. keyCount
+end
+
+
+local function setupKeyTracking()
+    local roomsFolder = workspace:FindFirstChild("Rooms")
+    if not roomsFolder then
+        return
+    end
+    
+    
+    roomsFolder.DescendantAdded:Connect(function(item)
+        if item.Name == "Door Key" then
+            task.wait()
+            createKeyESP(item)
+            local count = 0
+            for _ in pairs(keyEspObjects) do count = count + 1 end
+            keyStatus.Text = "已找到钥匙: " .. count
+        end
+    end)
+    
+    roomsFolder.DescendantRemoving:Connect(function(item)
+        if item.Name == "Door Key" then
+            removeKeyESP(item)
+            local count = 0
+            for _ in pairs(keyEspObjects) do count = count + 1 end
+            keyStatus.Text = "已找到钥匙: " .. count
+        end
+    end)
+end
+
+
+local function updatePlayerLight()
+    local player = game.Players.LocalPlayer
+    if not player then return end
+    
+    local character = player.Character or player.CharacterAdded:Wait()
+    local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+    
+    if isLightEnabled then
+        if not playerLight then
+            playerLight = Instance.new("PointLight")
+            playerLight.Name = "PlayerLight"
+            playerLight.Range = 1000
+            playerLight.Brightness = 20
+            playerLight.Color = Color3.fromRGB(255, 255, 255)
+        end
+        playerLight.Parent = humanoidRootPart
+    else
+        if playerLight then
+            playerLight:Destroy()
+            playerLight = nil
+        end
+    end
+end
+
+local function setupLightTracking()
+    local player = game.Players.LocalPlayer
+    
+    player.CharacterAdded:Connect(function(character)
+        if isLightEnabled then
+            local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+            if playerLight then
+                playerLight.Parent = humanoidRootPart
+            else
+                updatePlayerLight()
+            end
+        end
+    end)
+end
+
+lightToggle.MouseButton1Click:Connect(function()
+    isLightEnabled = not isLightEnabled
+    lightToggle.Text = isLightEnabled and "关闭" or "开启"
+    lightToggle.BackgroundColor3 = isLightEnabled and 
+        Color3.fromRGB(255, 60, 60) or
+        Color3.fromRGB(60, 120, 255)
+    
+    updatePlayerLight()
+end)
+
+
 local function startAutoRefresh()
     while true do
         if isDoorESPEnabled then
@@ -635,17 +1755,23 @@ local function startAutoRefresh()
         if isEntityESPEnabled then
             findAllEntities()
         end
-        
-        
-        local entitiesFolder = workspace:FindFirstChild("Entities")
-        if entitiesFolder then
-            local count = 0
-            for _, child in pairs(entitiesFolder:GetChildren()) do
-                if child:IsA("BasePart") then
-                    count = count + 1
-                end
-            end
-            entityStatus.Text = "已找到实体: " .. count
+        if isBatteryESPEnabled then
+            findAllBatteries()
+        end
+        if isNeedleESPEnabled then
+            findAllNeedles()
+        end
+        if isHeartESPEnabled then
+            findAllHearts()
+        end
+        if isChocolateESPEnabled then
+            findAllChocolates()
+        end
+        if isCameraESPEnabled then
+            findAllCameras()
+        end
+        if isKeyESPEnabled then
+            findAllKeys()
         end
         
         task.wait(1)
@@ -659,4 +1785,33 @@ task.spawn(startAutoRefresh)
 setupDoorTracking()
 
 
-setupEntityTracking() 
+setupEntityTracking()
+
+
+setupBatteryTracking()
+
+
+setupNeedleTracking()
+
+
+setupHeartTracking()
+
+
+setupChocolateTracking()
+
+
+setupCameraTracking()
+
+
+setupKeyTracking()
+
+
+setupSpeedControl()
+setupLightTracking()
+
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if not gameProcessed and input.KeyCode == Enum.KeyCode.RightShift then
+        isGuiVisible = not isGuiVisible
+        screenGui.Enabled = isGuiVisible
+    end
+end) 
