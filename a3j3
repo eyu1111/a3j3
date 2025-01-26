@@ -1,0 +1,662 @@
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local SoundService = game:GetService("SoundService")
+
+
+local espObjects = {}
+local entityEspObjects = {}
+
+
+local isDoorESPEnabled = false
+local isEntityESPEnabled = false
+local isNotificationEnabled = false
+
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "DoorESPGui"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = game:GetService("CoreGui")
+
+
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 200, 0, 220)  
+mainFrame.Position = UDim2.new(0.5, -100, 0, 10)
+mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+mainFrame.BackgroundTransparency = 0.1
+mainFrame.Parent = screenGui
+
+
+local mainCorner = Instance.new("UICorner")
+mainCorner.CornerRadius = UDim.new(0, 10)
+mainCorner.Parent = mainFrame
+
+
+local titleBar = Instance.new("Frame")
+titleBar.Name = "TitleBar"
+titleBar.Size = UDim2.new(1, 0, 0, 30)
+titleBar.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+titleBar.BackgroundTransparency = 0.5
+titleBar.Parent = mainFrame
+
+
+local titleCorner = Instance.new("UICorner")
+titleCorner.CornerRadius = UDim.new(0, 10)
+titleCorner.Parent = titleBar
+
+
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Size = UDim2.new(1, -20, 1, 0)
+titleLabel.Position = UDim2.new(0, 10, 0, 0)
+titleLabel.BackgroundTransparency = 1
+titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+titleLabel.TextSize = 16
+titleLabel.Font = Enum.Font.GothamBold
+titleLabel.Text = "TEhub"
+titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+titleLabel.Parent = titleBar
+
+
+local versionLabel = Instance.new("TextLabel")
+versionLabel.Size = UDim2.new(0, 50, 1, 0)
+versionLabel.Position = UDim2.new(1, -60, 0, 0)
+versionLabel.BackgroundTransparency = 1
+versionLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+versionLabel.TextSize = 12
+versionLabel.Font = Enum.Font.Gotham
+versionLabel.Text = "v1.0"
+versionLabel.TextXAlignment = Enum.TextXAlignment.Right
+versionLabel.Parent = titleBar
+
+
+local function createSeparator(posY)
+    local separator = Instance.new("Frame")
+    separator.Size = UDim2.new(1, -20, 0, 1)
+    separator.Position = UDim2.new(0, 10, 0, posY)
+    separator.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    separator.BorderSizePixel = 0
+    separator.Parent = mainFrame
+    return separator
+end
+
+
+local function createSectionTitle(text, posY)
+    local sectionTitle = Instance.new("TextLabel")
+    sectionTitle.Size = UDim2.new(1, -20, 0, 20)
+    sectionTitle.Position = UDim2.new(0, 10, 0, posY)
+    sectionTitle.BackgroundTransparency = 1
+    sectionTitle.TextColor3 = Color3.fromRGB(200, 200, 200)
+    sectionTitle.TextSize = 14
+    sectionTitle.Font = Enum.Font.GothamBold
+    sectionTitle.Text = text
+    sectionTitle.TextXAlignment = Enum.TextXAlignment.Left
+    sectionTitle.Parent = mainFrame
+    return sectionTitle
+end
+
+
+local function addButtonEffect(button)
+    button.MouseEnter:Connect(function()
+        game:GetService("TweenService"):Create(button, TweenInfo.new(0.2), {
+            BackgroundTransparency = 0.2
+        }):Play()
+    end)
+    
+    button.MouseLeave:Connect(function()
+        game:GetService("TweenService"):Create(button, TweenInfo.new(0.2), {
+            BackgroundTransparency = 0
+        }):Play()
+    end)
+    
+    button.MouseButton1Down:Connect(function()
+        game:GetService("TweenService"):Create(button, TweenInfo.new(0.1), {
+            Size = UDim2.new(0, 75, 0, 28)
+        }):Play()
+    end)
+    
+    button.MouseButton1Up:Connect(function()
+        game:GetService("TweenService"):Create(button, TweenInfo.new(0.1), {
+            Size = UDim2.new(0, 80, 0, 30)
+        }):Play()
+    end)
+end
+
+
+local function createToggleButton(text, posY, color)
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(0, 80, 0, 30)
+    button.Position = UDim2.new(1, -90, 0, posY)
+    button.BackgroundColor3 = Color3.fromRGB(60, 120, 255)  
+    button.Text = "开启"  
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    button.Font = Enum.Font.GothamBold
+    button.TextSize = 14
+    button.Parent = mainFrame
+    
+    local buttonCorner = Instance.new("UICorner")
+    buttonCorner.CornerRadius = UDim.new(0, 6)
+    buttonCorner.Parent = button
+    
+    
+    addButtonEffect(button)
+    
+    return button
+end
+
+
+local function createStatusLabel(posY)
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, -20, 0, 20)
+    label.Position = UDim2.new(0, 10, 0, posY)
+    label.BackgroundTransparency = 1
+    label.TextColor3 = Color3.fromRGB(200, 200, 200)
+    label.TextSize = 14
+    label.Font = Enum.Font.Gotham
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = mainFrame
+    return label
+end
+
+
+local doorTitle = createSectionTitle("门透视", 40)
+local doorToggle = createToggleButton("开启", 40, Color3.fromRGB(255, 60, 60))  
+local doorStatus = createStatusLabel(75)
+doorStatus.Text = "已找到门: 0"
+
+
+createSeparator(100)
+
+
+local entityTitle = createSectionTitle("实体透视", 110)
+local entityToggle = createToggleButton("开启", 110, Color3.fromRGB(255, 60, 60))  
+local entityStatus = createStatusLabel(145)
+entityStatus.Text = "已找到实体: 0"
+
+
+createSeparator(170)
+
+
+local notificationTitle = createSectionTitle("实体提示", 180)
+local notificationToggle = createToggleButton("开启", 180, Color3.fromRGB(255, 60, 60))  
+
+
+local function createAlertSound()
+    local sound = Instance.new("Sound")
+    sound.Name = "AlertSound"
+    sound.SoundId = "rbxassetid://6518811702"  
+    sound.Volume = 1  
+    sound.Parent = screenGui
+    return sound
+end
+
+
+local function createNotification(text)
+    
+    local alertSound = createAlertSound()
+    alertSound:Play()
+    task.delay(2, function()
+        alertSound:Destroy()
+    end)
+    
+    local notification = Instance.new("Frame")
+    notification.Name = "Notification"
+    notification.Size = UDim2.new(0, 200, 0, 50)
+    notification.Position = UDim2.new(0.5, -100, 0.5, -25)  
+    notification.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    notification.BackgroundTransparency = 0.2
+    notification.Parent = screenGui
+    
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 8)
+    corner.Parent = notification
+    
+    
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, -20, 1, 0)
+    label.Position = UDim2.new(0, 10, 0, 0)
+    label.BackgroundTransparency = 1
+    label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    label.TextSize = 14
+    label.Font = Enum.Font.Gotham
+    label.Text = text
+    label.TextWrapped = true
+    label.Parent = notification
+    
+    
+    notification.Position = UDim2.new(0.5, -100, 0, -50)  
+    local tween = TweenService:Create(notification, TweenInfo.new(0.5), {
+        Position = UDim2.new(0.5, -100, 0.5, -25)  
+    })
+    tween:Play()
+    
+    
+    task.delay(3, function()
+        local fadeOut = TweenService:Create(notification, TweenInfo.new(0.5), {
+            Position = UDim2.new(0.5, -100, 1, 50),  
+            BackgroundTransparency = 1
+        })
+        fadeOut:Play()
+        fadeOut.Completed:Connect(function()
+            notification:Destroy()
+        end)
+    end)
+end
+
+
+local function getRoomSignText(room)
+    local sign = room:FindFirstChild("Sign")
+    if sign then
+        
+        local text = sign:FindFirstChild("Text")
+        if text then
+            
+            local surfaceGui = text:FindFirstChild("SurfaceGui")
+            if surfaceGui then
+                
+                local textLabel = surfaceGui:FindFirstChild("TextLabel")
+                if textLabel then
+                    return textLabel.Text
+                end
+            end
+        end
+    end
+    return room.Name  
+end
+
+
+local function createDoorESP(door)
+    if espObjects[door] then 
+        return 
+    end
+    
+    
+    local espFrame = Instance.new("Folder")
+    espFrame.Name = "ESP_" .. door.Name
+    
+    
+    local referencePart = door:FindFirstChild("Door")
+    if not referencePart then
+        return
+    end
+    
+    
+    local signText = ""
+    local sign = door.Parent:FindFirstChild("Sign")
+    if sign then
+        local textPart = sign:FindFirstChild("Text")  
+        if textPart then
+            local surfaceGui = textPart:FindFirstChild("SurfaceGui")
+            if surfaceGui then
+                local textLabel = surfaceGui:FindFirstChild("TextLabel")
+                if textLabel then
+                    signText = textLabel.Text
+                    
+                    if signText == "A" then
+                        textLabel.Text = "3657198102定制脚本"
+                        signText = "3657198102定制脚本"
+                    end
+                end
+            end
+        end
+    end
+    
+    
+    local box = Instance.new("BoxHandleAdornment")
+    box.Name = "ESPBox"
+    box.Size = Vector3.new(5, 7, 1)  
+    box.Adornee = referencePart
+    box.AlwaysOnTop = true
+    box.ZIndex = 5
+    box.Color3 = Color3.fromRGB(0, 255, 0)  
+    box.Transparency = 0.5
+    box.Visible = isDoorESPEnabled
+    box.Parent = espFrame
+    
+    
+    local billboardGui = Instance.new("BillboardGui")
+    billboardGui.Name = "ESPTag"
+    billboardGui.Size = UDim2.new(0, 200, 0, 25)
+    billboardGui.AlwaysOnTop = true
+    billboardGui.StudsOffset = Vector3.new(0, referencePart.Size.Y / 2 + 2, 0)
+    billboardGui.Adornee = referencePart
+    billboardGui.Enabled = isDoorESPEnabled
+    
+    
+    local nameLabel = Instance.new("TextLabel")
+    nameLabel.Size = UDim2.new(1, 0, 1, 0)
+    nameLabel.Position = UDim2.new(0, 0, 0, 0)
+    nameLabel.BackgroundTransparency = 1
+    nameLabel.TextColor3 = Color3.fromRGB(0, 255, 0)  
+    nameLabel.TextStrokeTransparency = 0
+    nameLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+    nameLabel.Text = signText ~= "" and signText or door.Parent.Name
+    nameLabel.TextScaled = true
+    nameLabel.Font = Enum.Font.GothamBold
+    nameLabel.Parent = billboardGui
+    
+    billboardGui.Parent = espFrame
+    espFrame.Parent = game.CoreGui
+    
+    espObjects[door] = espFrame
+end
+
+
+local function removeDoorESP(door)
+    if espObjects[door] then
+        espObjects[door]:Destroy()
+        espObjects[door] = nil
+    end
+end
+
+
+local function findAllDoors()
+    local roomsFolder = workspace:FindFirstChild("Rooms")
+    if not roomsFolder then 
+        return 
+    end
+    
+    
+    for door, _ in pairs(espObjects) do
+        removeDoorESP(door)
+    end
+    
+    
+    local doorCount = 0
+    for _, room in pairs(roomsFolder:GetChildren()) do
+        
+        local door = room:FindFirstChild("Door")
+        if door and door:IsA("Model") then
+            createDoorESP(door)
+            doorCount = doorCount + 1
+        end
+    end
+    
+    
+    doorStatus.Text = "已找到门: " .. doorCount
+end
+
+
+local function setupDoorTracking()
+    local roomsFolder = workspace:FindFirstChild("Rooms")
+    if not roomsFolder then 
+        return 
+    end
+    
+    
+    roomsFolder.ChildAdded:Connect(function(room)
+        task.wait()  
+        local door = room:WaitForChild("Door", 5)  
+        if door and door:IsA("Model") then
+            createDoorESP(door)
+            
+            local count = 0
+            for _ in pairs(espObjects) do count = count + 1 end
+            doorStatus.Text = "已找到门: " .. count
+        end
+    end)
+    
+    
+    roomsFolder.ChildRemoved:Connect(function(room)
+        local door = room:FindFirstChild("Door")
+        if door then
+            removeDoorESP(door)
+            
+            local count = 0
+            for _ in pairs(espObjects) do count = count + 1 end
+            doorStatus.Text = "已找到门: " .. count
+        end
+    end)
+end
+
+
+local function createEntityESP(part)
+    if entityEspObjects[part] then
+        return
+    end
+    
+    
+    local espFrame = Instance.new("Folder")
+    espFrame.Name = "ESP_" .. part.Name
+    
+    
+    local box = Instance.new("BoxHandleAdornment")
+    box.Name = "ESPBox"
+    box.Size = part.Size
+    box.Adornee = part
+    box.AlwaysOnTop = true
+    box.ZIndex = 5
+    box.Color3 = Color3.fromRGB(255, 0, 0)  
+    box.Transparency = 0.5
+    box.Visible = isEntityESPEnabled
+    box.Parent = espFrame
+    
+    
+    local billboardGui = Instance.new("BillboardGui")
+    billboardGui.Name = "ESPTag"
+    billboardGui.Size = UDim2.new(0, 200, 0, 25)
+    billboardGui.AlwaysOnTop = true
+    billboardGui.StudsOffset = Vector3.new(0, part.Size.Y / 2 + 2, 0)
+    billboardGui.Adornee = part
+    billboardGui.Enabled = isEntityESPEnabled
+    
+    
+    local nameLabel = Instance.new("TextLabel")
+    nameLabel.Size = UDim2.new(1, 0, 1, 0)
+    nameLabel.Position = UDim2.new(0, 0, 0, 0)
+    nameLabel.BackgroundTransparency = 1
+    nameLabel.TextColor3 = Color3.fromRGB(255, 0, 0)  
+    nameLabel.TextStrokeTransparency = 0
+    nameLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+    nameLabel.Text = part.Name
+    nameLabel.TextScaled = true
+    nameLabel.Font = Enum.Font.GothamBold
+    nameLabel.Parent = billboardGui
+    
+    billboardGui.Parent = espFrame
+    espFrame.Parent = game.CoreGui
+    
+    entityEspObjects[part] = espFrame
+end
+
+
+local function removeEntityESP(part)
+    if entityEspObjects[part] then
+        entityEspObjects[part]:Destroy()
+        entityEspObjects[part] = nil
+    end
+end
+
+
+local function findAllEntities()
+    local entitiesFolder = workspace:FindFirstChild("Entities")
+    if not entitiesFolder then
+        return
+    end
+    
+    
+    for part, _ in pairs(entityEspObjects) do
+        removeEntityESP(part)
+    end
+    
+    
+    local entityCount = 0
+    for _, part in pairs(entitiesFolder:GetChildren()) do
+        if part:IsA("BasePart") then
+            createEntityESP(part)
+            entityCount = entityCount + 1
+        end
+    end
+    
+    print("总共找到实体:", entityCount)
+end
+
+
+local function setupEntityTracking()
+    local entitiesFolder = workspace:FindFirstChild("Entities")
+    if not entitiesFolder then
+        return
+    end
+    
+    
+    entitiesFolder.ChildAdded:Connect(function(child)
+        if child:IsA("BasePart") then
+            task.wait()  
+            
+            if isNotificationEnabled then
+                createNotification("检测到新实体: " .. child.Name)
+            end
+            createEntityESP(child)
+        end
+    end)
+    
+    
+    entitiesFolder.ChildRemoved:Connect(function(child)
+        if child:IsA("BasePart") then
+            removeEntityESP(child)
+        end
+    end)
+end
+
+
+doorToggle.MouseButton1Click:Connect(function()
+    isDoorESPEnabled = not isDoorESPEnabled
+    doorToggle.Text = isDoorESPEnabled and "关闭" or "开启"
+    doorToggle.BackgroundColor3 = isDoorESPEnabled and 
+        Color3.fromRGB(255, 60, 60) or  
+        Color3.fromRGB(60, 120, 255)    
+    
+    
+    for _, espFrame in pairs(espObjects) do
+        if espFrame:FindFirstChild("ESPBox") then
+            espFrame.ESPBox.Visible = isDoorESPEnabled
+        end
+        if espFrame:FindFirstChild("ESPTag") then
+            espFrame.ESPTag.Enabled = isDoorESPEnabled
+        end
+    end
+    
+    if isDoorESPEnabled then
+        findAllDoors()
+    end
+end)
+
+
+entityToggle.MouseButton1Click:Connect(function()
+    isEntityESPEnabled = not isEntityESPEnabled
+    entityToggle.Text = isEntityESPEnabled and "关闭" or "开启"
+    entityToggle.BackgroundColor3 = isEntityESPEnabled and 
+        Color3.fromRGB(255, 60, 60) or  
+        Color3.fromRGB(60, 120, 255)    
+    
+    
+    for _, espFrame in pairs(entityEspObjects) do
+        if espFrame:FindFirstChild("ESPBox") then
+            espFrame.ESPBox.Visible = isEntityESPEnabled
+        end
+        if espFrame:FindFirstChild("ESPTag") then
+            espFrame.ESPTag.Enabled = isEntityESPEnabled
+        end
+    end
+    
+    if isEntityESPEnabled then
+        findAllEntities()
+    end
+end)
+
+
+notificationToggle.MouseButton1Click:Connect(function()
+    isNotificationEnabled = not isNotificationEnabled
+    notificationToggle.Text = isNotificationEnabled and "关闭" or "开启"
+    notificationToggle.BackgroundColor3 = isNotificationEnabled and 
+        Color3.fromRGB(255, 60, 60) or  
+        Color3.fromRGB(60, 120, 255)    
+end)
+
+
+local dragging = false
+local dragStart = nil
+local startPos = nil
+
+titleBar.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = mainFrame.Position
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local delta = input.Position - dragStart
+        mainFrame.Position = UDim2.new(
+            startPos.X.Scale,
+            startPos.X.Offset + delta.X,
+            startPos.Y.Scale,
+            startPos.Y.Offset + delta.Y
+        )
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = false
+    end
+end)
+
+
+RunService.RenderStepped:Connect(function()
+    for door, espFrame in pairs(espObjects) do
+        local referencePart = door:FindFirstChild("Door")
+        if referencePart then
+            local box = espFrame:FindFirstChild("ESPBox")
+            if box then
+                box.Size = Vector3.new(5, 7, 1)  
+            end
+        end
+    end
+    
+    for part, espFrame in pairs(entityEspObjects) do
+        local box = espFrame:FindFirstChild("ESPBox")
+        if box then
+            box.Size = part.Size
+        end
+    end
+end)
+
+
+local function startAutoRefresh()
+    while true do
+        if isDoorESPEnabled then
+            findAllDoors()
+        end
+        if isEntityESPEnabled then
+            findAllEntities()
+        end
+        
+        
+        local entitiesFolder = workspace:FindFirstChild("Entities")
+        if entitiesFolder then
+            local count = 0
+            for _, child in pairs(entitiesFolder:GetChildren()) do
+                if child:IsA("BasePart") then
+                    count = count + 1
+                end
+            end
+            entityStatus.Text = "已找到实体: " .. count
+        end
+        
+        task.wait(1)
+    end
+end
+
+
+task.spawn(startAutoRefresh)
+
+
+setupDoorTracking()
+
+
+setupEntityTracking() 
