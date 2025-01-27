@@ -34,6 +34,11 @@ screenGui.Name = "DoorESPGui"
 screenGui.ResetOnSpawn = false
 screenGui.Parent = game:GetService("CoreGui")
 
+local notificationGui = Instance.new("ScreenGui")  -- 创建独立的通知GUI
+notificationGui.Name = "NotificationGui"
+notificationGui.ResetOnSpawn = false
+notificationGui.Parent = game:GetService("CoreGui")
+
 
 local mainFrame = Instance.new("Frame")
 mainFrame.Name = "MainFrame"
@@ -398,7 +403,6 @@ end
 
 
 local function createNotification(text)
-    
     local alertSound = createAlertSound()
     alertSound:Play()
     task.delay(2, function()
@@ -411,13 +415,11 @@ local function createNotification(text)
     notification.Position = UDim2.new(0.5, -100, 0.5, -25)  
     notification.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
     notification.BackgroundTransparency = 0.2
-    notification.Parent = screenGui
-    
+    notification.Parent = notificationGui  
     
     local corner = Instance.new("UICorner")
     corner.CornerRadius = UDim.new(0, 8)
     corner.Parent = notification
-    
     
     local label = Instance.new("TextLabel")
     label.Size = UDim2.new(1, -20, 1, 0)
@@ -430,13 +432,11 @@ local function createNotification(text)
     label.TextWrapped = true
     label.Parent = notification
     
-    
     notification.Position = UDim2.new(0.5, -100, 0, -50)  
     local tween = TweenService:Create(notification, TweenInfo.new(0.5), {
         Position = UDim2.new(0.5, -100, 0.5, -25)  
     })
     tween:Play()
-    
     
     task.delay(3, function()
         local fadeOut = TweenService:Create(notification, TweenInfo.new(0.5), {
@@ -703,22 +703,30 @@ local function setupEntityTracking()
         return
     end
     
-    
     entitiesFolder.ChildAdded:Connect(function(child)
         if child:IsA("BasePart") then
-            task.wait()  
-            
-            if isNotificationEnabled then
-                createNotification("检测到新实体: " .. child.Name)
-            end
-            createEntityESP(child)
+            task.spawn(function()
+                if isNotificationEnabled then
+                    createNotification("检测到新实体: " .. child.Name)
+                end
+                createEntityESP(child)
+                
+                local count = 0
+                for _ in pairs(entityEspObjects) do count = count + 1 end
+                entityStatus.Text = "已找到实体: " .. count
+            end)
         end
     end)
     
-    
     entitiesFolder.ChildRemoved:Connect(function(child)
         if child:IsA("BasePart") then
-            removeEntityESP(child)
+            task.spawn(function()
+                removeEntityESP(child)
+                
+                local count = 0
+                for _ in pairs(entityEspObjects) do count = count + 1 end
+                entityStatus.Text = "已找到实体: " .. count
+            end)
         end
     end)
 end
@@ -1170,47 +1178,6 @@ local function findAllNeedles()
     end
     
     needleStatus.Text = "已找到破坏锁: " .. needleCount
-end
-
-
-local function setupNeedleTracking()
-    local roomsFolder = workspace:FindFirstChild("Rooms")
-    if not roomsFolder then
-        return
-    end
-    
-    local function checkRoom(room)
-        local itemSpawns = room:FindFirstChild("ItemSpawns")
-        if itemSpawns then
-            itemSpawns.DescendantAdded:Connect(function(item)
-                if item.Name == "Metal Needle" then
-                    task.wait()
-                    createNeedleESP(item)
-                    local count = 0
-                    for _ in pairs(needleEspObjects) do count = count + 1 end
-                    needleStatus.Text = "已找到破坏锁: " .. count
-                end
-            end)
-            
-            itemSpawns.DescendantRemoving:Connect(function(item)
-                if item.Name == "Metal Needle" then
-                    removeNeedleESP(item)
-                    local count = 0
-                    for _ in pairs(needleEspObjects) do count = count + 1 end
-                    needleStatus.Text = "已找到破坏锁: " .. count
-                end
-            end)
-        end
-    end
-    
-    for _, room in pairs(roomsFolder:GetChildren()) do
-        checkRoom(room)
-    end
-    
-    roomsFolder.ChildAdded:Connect(function(room)
-        task.wait()
-        checkRoom(room)
-    end)
 end
 
 
@@ -1747,35 +1714,107 @@ lightToggle.MouseButton1Click:Connect(function()
 end)
 
 
-local function startAutoRefresh()
-    while true do
-        if isDoorESPEnabled then
-            findAllDoors()
-        end
-        if isEntityESPEnabled then
-            findAllEntities()
-        end
-        if isBatteryESPEnabled then
-            findAllBatteries()
-        end
-        if isNeedleESPEnabled then
-            findAllNeedles()
-        end
-        if isHeartESPEnabled then
-            findAllHearts()
-        end
-        if isChocolateESPEnabled then
-            findAllChocolates()
-        end
-        if isCameraESPEnabled then
-            findAllCameras()
-        end
-        if isKeyESPEnabled then
-            findAllKeys()
-        end
-        
-        task.wait(1)
+local function setupNeedleTracking()
+    local roomsFolder = workspace:FindFirstChild("Rooms")
+    if not roomsFolder then
+        return
     end
+    
+    local function checkRoom(room)
+        local itemSpawns = room:FindFirstChild("ItemSpawns")
+        if itemSpawns then
+            itemSpawns.DescendantAdded:Connect(function(item)
+                if item.Name == "Metal Needle" then
+                    task.spawn(function()
+                        createNeedleESP(item)
+                        local count = 0
+                        for _ in pairs(needleEspObjects) do count = count + 1 end
+                        needleStatus.Text = "已找到破坏锁: " .. count
+                    end)
+                end
+            end)
+            
+            itemSpawns.DescendantRemoving:Connect(function(item)
+                if item.Name == "Metal Needle" then
+                    task.spawn(function()
+                        removeNeedleESP(item)
+                        local count = 0
+                        for _ in pairs(needleEspObjects) do count = count + 1 end
+                        needleStatus.Text = "已找到破坏锁: " .. count
+                    end)
+                end
+            end)
+        end
+    end
+    
+    for _, room in pairs(roomsFolder:GetChildren()) do
+        checkRoom(room)
+    end
+    
+    roomsFolder.ChildAdded:Connect(function(room)
+        checkRoom(room)
+    end)
+end
+
+local function startAutoRefresh()
+    local lastEntityRefresh = 0
+    local ENTITY_REFRESH_INTERVAL = 0.05  -- 每0.05秒检测一次实体
+    
+    local function refreshEntities()
+        if isEntityESPEnabled then
+            task.spawn(function()
+                findAllEntities()
+            end)
+        end
+    end
+    
+    local function refreshOthers()
+        task.spawn(function()
+            if isDoorESPEnabled then
+                findAllDoors()
+            end
+            if isBatteryESPEnabled then
+                findAllBatteries()
+            end
+            if isNeedleESPEnabled then
+                findAllNeedles()
+            end
+            if isHeartESPEnabled then
+                findAllHearts()
+            end
+            if isChocolateESPEnabled then
+                findAllChocolates()
+            end
+            if isCameraESPEnabled then
+                findAllCameras()
+            end
+            if isKeyESPEnabled then
+                findAllKeys()
+            end
+        end)
+    end
+    
+    -- 实体检测使用更高的刷新频率
+    task.spawn(function()
+        while true do
+            if isEntityESPEnabled then
+                local currentTime = tick()
+                if currentTime - lastEntityRefresh >= ENTITY_REFRESH_INTERVAL then
+                    refreshEntities()
+                    lastEntityRefresh = currentTime
+                end
+            end
+            task.wait(ENTITY_REFRESH_INTERVAL)
+        end
+    end)
+    
+    -- 其他物品检测保持原有的刷新频率
+    task.spawn(function()
+        while true do
+            refreshOthers()
+            task.wait(1)
+        end
+    end)
 end
 
 
