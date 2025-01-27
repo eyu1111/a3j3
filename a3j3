@@ -34,7 +34,7 @@ screenGui.Name = "DoorESPGui"
 screenGui.ResetOnSpawn = false
 screenGui.Parent = game:GetService("CoreGui")
 
-local notificationGui = Instance.new("ScreenGui")  -- 创建独立的通知GUI
+local notificationGui = Instance.new("ScreenGui")  
 notificationGui.Name = "NotificationGui"
 notificationGui.ResetOnSpawn = false
 notificationGui.Parent = game:GetService("CoreGui")
@@ -1758,7 +1758,7 @@ end
 
 local function startAutoRefresh()
     local lastEntityRefresh = 0
-    local ENTITY_REFRESH_INTERVAL = 0.05  -- 每0.05秒检测一次实体
+    local ENTITY_REFRESH_INTERVAL = 0.05  
     
     local function refreshEntities()
         if isEntityESPEnabled then
@@ -1794,7 +1794,7 @@ local function startAutoRefresh()
         end)
     end
     
-    -- 实体检测使用更高的刷新频率
+    
     task.spawn(function()
         while true do
             if isEntityESPEnabled then
@@ -1808,7 +1808,7 @@ local function startAutoRefresh()
         end
     end)
     
-    -- 其他物品检测保持原有的刷新频率
+    
     task.spawn(function()
         while true do
             refreshOthers()
